@@ -6,13 +6,28 @@ use App\Http\Requests\StoreEquipmentRequest;
 use App\Http\Requests\UpdateEquipmentRequest;
 use App\Http\Resources\EquipmentResource;
 use App\Models\Equipment;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class EquipmentController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return EquipmentResource::collection(Equipment::with('equipmentType')->get());
+        $query = Equipment::query()->with('equipmentType');
+
+        if ($request->has('serial_number')) {
+            $query->where('serial_number', 'like', '%' . $request->serial_number . '%');
+        }
+
+        if ($request->has('equipment_type_id')) {
+            $query->where('equipment_type_id', $request->equipment_type_id);
+        }
+
+        if ($request->has('notes')) {
+            $query->where('notes', 'like', '%' . $request->notes . '%');
+        }
+
+        return EquipmentResource::collection($query->get());
     }
 
     public function store(StoreEquipmentRequest $request): EquipmentResource
